@@ -1,0 +1,154 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>User Detail</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.0.2/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-EVSTQN3/azprG1Anm3QDgpJLIm9Nao0Yz1ztcQTwFspd3yD65VohhpuuCOmLASjC" crossorigin="anonymous">
+</head>
+<body class="p-5">
+    <form id="user-detail">
+        <p>Loading user details...</p>
+    </form>
+    <button onclick="goBack()" class="btn btn-warning">Go Back</button>
+    <button type="submit" form="user-detail" class="btn btn-primary">submit</button>
+
+    <script>
+        // Cek apakah token ada di localStorage
+        const token = localStorage.getItem('token');
+
+        if (!token) {
+            alert("Please login first!");
+            window.location.href = 'index.html';
+        } else {
+            // Ambil id dari query string
+            const urlParams = new URLSearchParams(window.location.search);
+            const userId = urlParams.get('id');
+
+            if (!userId) {
+                document.getElementById('user-detail').innerHTML = '<p>User ID not provided</p>';
+            } else {
+                Promise.all([
+                    // Fetch detail pengguna dari backend
+                    fetch(`http://localhost:8080/${userId}`, {
+                        method: 'GET',
+                        headers: {
+                            'Authorization': token,
+                            'Content-Type': 'application/json'
+                        }
+                    }),
+                    // Fetch semua pengguna dari backend
+                    fetch(`http://localhost:8080/getallusers`, {
+                        method: 'GET',
+                        headers: {
+                            'Authorization': token,
+                            'Content-Type': 'application/json'
+                        }
+                    }),
+                    fetch(`http://localhost:8080/getdivision`, {
+                        method: 'GET',
+                        headers: {
+                            'Authorization': token,
+                            'Content-Type': 'application/json'
+                        }
+                    })
+                ])
+                .then(async ([response1, response2, response3]) => {
+                    if (!response1.ok || !response2.ok || !response3.ok) {
+                        throw new Error('Error fetching data from one or both APIs');
+                    }
+
+                    const user = await response1.json(); // Parse JSON dari respons pertama
+                    const reportData = await response2.json(); // Parse JSON dari respons kedua
+                    const divisi = await response3.json();
+
+                    if (user.error) {
+                        document.getElementById('user-detail').innerHTML = `<p>Error loading user details: ${user.message}</p>`;
+                    } else {
+                        let htmlContent = `<h1>User Details</h1>`;
+                        htmlContent += '<table class="table">';
+                        htmlContent += '<tbody>';
+                        htmlContent += `<tr><td>ID:</td> <td>${user.users.id}</td></tr>`;
+                        htmlContent += `<tr><td>Name:</td> <td>${user.users.nama}</td></tr>`;
+                        htmlContent += `<tr><td>Email:</td> <td>${user.users.email}</td></tr>`;
+                        htmlContent += `<tr><td>Role:</td> <td>
+                                        <select class="form-select" aria-label="Default select example" id="role">
+                                            <option selected value="${user.users.role}">${user.users.role}</option>
+                                            <option value="guest">guest</option>
+                                            <option value="user">user</option>
+                                            <option value="supervisor">supervisor</option>
+                                        </select>
+                                        </td></tr>`;
+                        htmlContent +=  `<tr><td>Report to:</td> <td>
+                                        <select class="form-select" aria-label="Default select example" id="report_to">
+                                            <option selected value="${user.users.report_to}">${user.users.report_to}</option>`;
+                        // Iterasi data dari API kedua untuk mengisi dropdown
+                        reportData.users.forEach(report => {
+                            htmlContent += `<option value="${report.idUser}">${report.Nama}</option>`;
+                        });
+                        htmlContent += `</select>
+                                        </td></tr>`;
+                        htmlContent +=  `<tr><td>Divisi:</td> <td>
+                                        <select class="form-select" aria-label="Default select example" id="idDivisi">
+                                            <option selected value="${user.users.divisi}">${user.users.divisi}</option>`;
+                        divisi.divisi.forEach(divisi => {
+                            htmlContent += `<option value="${divisi.idDivisi}">${divisi.Nama_Divisi}</option>`;
+                        });
+                        htmlContent +=  `</select>
+                                        </td></tr>`;
+                        htmlContent += '</tbody>';
+                        htmlContent += '</table>';
+                        document.getElementById('user-detail').innerHTML = htmlContent;
+                    }
+                })
+                .catch(err => {
+                    console.error('Error fetching user details:', err);
+                    document.getElementById('user-detail').innerHTML = `<p>Error fetching user details</p>`;
+                });
+            }
+        }
+
+        function goBack() {
+            window.history.back();
+        }
+
+        document.getElementById('user-detail').addEventListener('submit', async function(e) {
+            e.preventDefault();
+
+            const role = document.getElementById('role').value;
+            const idDivisi = document.getElementById('idDivisi').value;
+            const report_to = document.getElementById('report_to').value;
+
+            const token = localStorage.getItem('token');
+            
+            const urlParams = new URLSearchParams(window.location.search);
+            const userId = urlParams.get('id');
+            
+            try {
+                const response = await fetch(`http://localhost:8080/${userId}/enroll`, {
+                    method: 'POST',
+                    headers: {
+                        'Authorization': token,
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({ role, idDivisi, report_to }),
+                });
+
+                const data = await response.json();
+                console.log(data);
+                
+
+                if (response.ok && !data.error) {
+                    alert('Update successful!');
+                } else {
+                    alert(data.message || 'Registration failed');
+                }
+                location.reload();
+            } catch (error) {
+                console.error('Error during update:', error);
+                alert('An error occurred during update');
+            }
+        });
+    </script>
+</body>
+</html>
