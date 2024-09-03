@@ -8,19 +8,19 @@
 </head>
 <body style="height: 100vh;">
     <div class="position-absolute top-50 start-50 translate-middle">
-        <h1>Finance Dashboard</h1>
-        <p>Hello, please choose what you want to do</p>
+        <h1>Actual Request</h1>
+        <p>Hello, please choose</p>
     
         <div class="contaner mb-5">
             <a href="finance/forecast.html">
-                <button type="button" class="btn btn-primary btn-lg">Forecast request</button>
+                <button type="button" class="btn btn-primary btn-lg">Actual Income</button>
             </a>
             <a href="finance/actual.html">
-                <button type="button" class="btn btn-warning btn-lg">Actual request</button>
+                <button type="button" class="btn btn-warning btn-lg">Actual Outcome</button>
             </a>
         </div>
         
-        <button type="button" class="btn btn-danger" onclick="logout()">logout</button>
+        <button type="button" class="btn btn-danger" onclick="back()">back</button>
     </div>
 
     <script>
@@ -39,9 +39,8 @@
             }
         }
 
-        function logout() {
-            localStorage.removeItem('token');
-            window.location.href = 'index.html';
+        function back() {
+            window.history.back();
         }
     </script>
 </body>

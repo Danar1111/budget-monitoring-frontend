@@ -8,19 +8,19 @@
 </head>
 <body style="height: 100vh;">
     <div class="position-absolute top-50 start-50 translate-middle">
-        <h1>Finance Dashboard</h1>
-        <p>Hello, please choose what you want to do</p>
+        <h1>Forecast Request</h1>
+        <p>Hello, please choose</p>
     
         <div class="contaner mb-5">
-            <a href="finance/forecast.html">
-                <button type="button" class="btn btn-primary btn-lg">Forecast request</button>
+            <a href="forecast-income.html">
+                <button type="button" class="btn btn-primary btn-lg">Forecast Income</button>
             </a>
-            <a href="finance/actual.html">
-                <button type="button" class="btn btn-warning btn-lg">Actual request</button>
+            <a href="forecast-outcome.html">
+                <button type="button" class="btn btn-warning btn-lg">Forecast Outcome</button>
             </a>
         </div>
         
-        <button type="button" class="btn btn-danger" onclick="logout()">logout</button>
+        <button type="button" class="btn btn-danger" onclick="back()">back</button>
     </div>
 
     <script>
@@ -28,20 +28,19 @@
         
         if (!token) {
             alert("Please login first!");
-            window.location.href = 'index.html';
+            window.location.href = '../index.html';
         } else {
             const payload = JSON.parse(atob(token.split('.')[1]));
             const { role, divisi } = payload;
 
             if (role !== 'supervisor' || divisi !== 'finance') {
                 alert("You do not have permission to access this page.");
-                window.location.href = 'index.html';
+                window.location.href = '../index.html';
             }
         }
 
-        function logout() {
-            localStorage.removeItem('token');
-            window.location.href = 'index.html';
+        function back() {
+            window.history.back();
         }
     </script>
 </body>

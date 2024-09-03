@@ -1,0 +1,91 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Admin Dashboard</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.0.2/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-EVSTQN3/azprG1Anm3QDgpJLIm9Nao0Yz1ztcQTwFspd3yD65VohhpuuCOmLASjC" crossorigin="anonymous">
+</head>
+<body class="p-5">
+    <h1>Forecast Income Request</h1>
+    <div id="forecast-data">
+        <p>Loading data...</p>
+    </div>
+    <button onclick="back()" class="btn btn-danger">back</button>
+
+    <script>
+        const token = localStorage.getItem('token');
+
+        if (!token) {
+            alert("Please login first!");
+            window.location.href = '../index.html';
+        } else {
+            const payload = JSON.parse(atob(token.split('.')[1]));
+            const { role, divisi } = payload;
+
+            if (role !== 'supervisor' || divisi !== 'finance') {
+                alert("You do not have permission to access this page.");
+                window.location.href = '../index.html';
+            } else {
+                fetch('http://vps.danar.site:8080/getforecastincome', {
+                    method: 'GET',
+                    headers: {
+                        'Authorization': token,
+                        'Content-Type': 'application/json'
+                    }
+                })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.error) {
+                        document.getElementById('forecast-data').innerHTML = `<p>Error loading data: ${data.message}</p>`;
+                    } else if (Array.isArray(data.data)) {
+                        let htmlContent = `
+                            <table class="table table-striped">
+                                <thead>
+                                    <tr>
+                                        <th scope="col">ID Forecast</th>
+                                        <th scope="col">ID User</th>
+                                        <th scope="col">Bulan</th>
+                                        <th scope="col">Tahun</th>
+                                        <th scope="col">Total Forecast</th>
+                                        <th scope="col">Status</th>
+                                        <th scope="col">Detail</th>
+                                    </tr>
+                                </thead>
+                                <tbody>`;
+
+                        data.data.forEach(item => {
+                            htmlContent += `
+                                <tr>
+                                    <td>${item.idForecastPemasukan}</td>
+                                    <td>${item.idUser}</td>
+                                    <td>${item.Bulan}</td>
+                                    <td>${item.Tahun}</td>
+                                    <td>Rp${parseInt(item.Total_Forecast_Pemasukan).toLocaleString('id-ID')}</td>
+                                    <td>${item.isApproved}</td>
+                                    <td><a href="userdetail.html?id=${item.idForecastPemasukan}"><button type="button" class="btn btn-primary">Detail</button></a></td>
+                                    </tr>`;
+                                    // <td>${item.approvedBy ? item.approvedBy : '-'}</td>
+                                    // <td>${item.timeApproved ? new Date(item.timeApproved).toLocaleString('id-ID') : '-'}</td>
+                                    // <td>${item.notes ? item.notes : '-'}</td>
+                        });
+
+                        htmlContent += `</tbody></table>`;
+                        document.getElementById('forecast-data').innerHTML = htmlContent;
+                    } else {
+                        document.getElementById('forecast-data').innerHTML = `<p>No data available</p>`;
+                    }
+                })
+                .catch(err => {
+                    console.error('Error fetching data:', err);
+                    document.getElementById('forecast-data').innerHTML = `<p>Error fetching data</p>`;
+                });
+            }
+        }
+
+        function back() {
+            window.history.back();
+        }
+    </script>
+</body>
+</html>
