@@ -11,6 +11,9 @@
     <div id="admin-data">
         <p>Loading data...</p>
     </div>
+    <a href="admin/divisi.html">
+        <button class="btn btn-primary">Add Division</button>
+    </a>
     <button onclick="logout()" class="btn btn-danger">Logout</button>
 
     <script>
@@ -27,7 +30,7 @@
                 alert("You do not have permission to access this page.");
                 window.location.href = 'index.html';
             } else {
-                fetch('http://localhost:8080/getallusers', {
+                fetch('http://vps.danar.site:8080/getallusers', {
                     method: 'GET',
                     headers: { 
                         'Authorization': token,
@@ -46,7 +49,7 @@
                             htmlContent += '<thead> <tr> <th scope="col">ID User</th> <th scope="col">nama user</th> <th scope="col">Role</th> <th scope="col">Divisi</th> <th scope="col">Edit</th> </tr> </thead';
                             htmlContent += '<tbody>';
                             data.users.forEach(user => {
-                                htmlContent += `<tr><td>${user.idUser}</td> <td>${user.Nama}</td> <td>${user.Role}</td> <td>${user.Nama_Divisi}</td> <td> <a href="userdetail.html?id=${user.idUser}"><button type="button" class="btn btn-primary">Detail</button></a></td></tr>`;
+                                htmlContent += `<tr><td>${user.idUser}</td> <td>${user.Nama}</td> <td>${user.Role}</td> <td>${user.Nama_Divisi}</td> <td> <a href="admin/userdetail.html?id=${user.idUser}"><button type="button" class="btn btn-primary">Detail</button></a></td></tr>`;
                             });
                             htmlContent += '</tbody>';
                             htmlContent += '</table>';
