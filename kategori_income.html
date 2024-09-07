@@ -1,0 +1,272 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Kategori Income</title>
+</head>
+<body>
+    <form id="forecast-detail">
+        <p>Loading forecast details...</p>
+    </form>
+    <button id="addCategory" type="button" class="btn btn-warning">Add Category</button>
+    <button onclick="goBack()" class="btn btn-warning">Go Back</button>
+
+    <script>
+        // Cek apakah token ada di localStorage
+        const token = localStorage.getItem('token');
+        if (!token) {
+            alert("Please login first!");
+            window.location.href = 'index.html';
+        } else {
+            // Ambil id dari query string
+            const urlParams = new URLSearchParams(window.location.search);
+            const forecastId = urlParams.get('id');
+
+            if (!forecastId) {
+                document.getElementById('forecast-detail').innerHTML = '<p>User ID not provided</p>';
+            } else {
+                    // Fetch detail pengguna dari backend
+                fetch(`http://localhost:8080/forecast-income/${forecastId}`, {
+                    method: 'GET',
+                    headers: {
+                        'Authorization': token,
+                        'Content-Type': 'application/json'
+                    }
+                })
+                .then(response => response.json()) 
+                .then(data => {
+                    if (data.error) {
+                        document.getElementById('forecast-detail').innerHTML = `<p>Error loading data: ${data.message}</p>`;
+                    } else {
+                        // Periksa apakah data dan data.users ada dan merupakan array
+                        if (Array.isArray(data.data)) {
+                            let htmlContent = `<h2>Forecast Income Detail: </h2>`;
+                            htmlContent += '<table class="table">';
+                            htmlContent += '<thead> <tr> <th scope="col">ID Kategori</th> <th scope="col">Nama Kategori</th> <th scope="col">Harga</th> </tr> </thead';
+                            htmlContent += '<tbody>';
+                            data.data.forEach(data => {
+                                htmlContent += `<tr><td> ${data.idKategori}</td> <td class="Nama_Kategori">${data.Nama_Kategori} </td> <td class="Harga">${data.Harga}</td>`;
+                                htmlContent += `<td><button id="editCategory" type="button" class="btn btn-primary">EDIT</button></td> <td><button id="deleteCategory" type="button" class="btn btn-primary">DELETE</button></td></tr>`;
+                            });
+                            htmlContent += '</tbody>';
+                            htmlContent += '</table>';
+                            document.getElementById('forecast-detail').innerHTML = htmlContent;
+
+                            document.querySelectorAll('#forecast-detail .btn').forEach(button => {
+                                button.addEventListener('click', function(e) {
+                                    if (e.target && e.target.id === 'editCategory') {
+                                        e.preventDefault();
+                                        const isApproved = sessionStorage.getItem('isApproved');
+
+                                        if(isApproved !== 'not submitted'){
+                                            alert("Forecast has been submitted, no change allowed");
+                                            return;
+                                        }
+                    
+                                        // Get the row that contains the clicked button
+                                        const row = e.target.closest('tr');
+
+                                        // Get the cells of the row
+                                        const idKategoriCell = row.cells[0];
+                                        const namaKategoriCell = row.cells[1];
+                                        const hargaCell = row.cells[2];
+
+                                        // Store the original values
+                                        const originalNamaKategori = namaKategoriCell.textContent.trim();
+                                        const originalHarga = hargaCell.textContent.trim();
+
+                                        // Replace the cell content with input fields
+                                        namaKategoriCell.innerHTML = `<input type="text" value="${originalNamaKategori}" class="form-control">`;
+                                        hargaCell.innerHTML = `<input type="text" value="${originalHarga}" class="form-control">`;
+
+                                        // Replace the Edit button with an OK button
+                                        const editButtonCell = row.cells[3];
+                                        editButtonCell.innerHTML = `<button type="button" class="btn btn-success" id="okCategory">OK</button>`;
+
+                                        // Add event listener to the OK button
+                                        editButtonCell.querySelector('#okCategory').addEventListener('click', function() {
+                                            // Get the new values from the input fields
+                                            const idKategori = idKategoriCell.textContent.trim();
+                                            const newNamaKategori = namaKategoriCell.querySelector('input').value.trim();
+                                            const newHarga = hargaCell.querySelector('input').value.trim();
+                                            
+                                            // Update the row with the new values
+                                            namaKategoriCell.textContent = newNamaKategori;
+                                            hargaCell.textContent = newHarga;
+
+                                            // Replace the OK button with the Edit button again
+                                            editButtonCell.innerHTML = `<button type="button" class="btn btn-primary" id="editCategory">EDIT</button>`;
+
+                                            // Optionally: Send the updated data to the server
+                                            // This would involve making a fetch call similar to how you handled the Add Category functionality
+                                            const token = localStorage.getItem('token');
+                                            const data = {
+                                                Nama_Kategori: newNamaKategori,
+                                                Harga: newHarga
+                                            };
+
+                                            fetch(`http://localhost:8080/forecast-income/${idKategori}`, {
+                                                method: 'PUT',
+                                                headers: {
+                                                    'Content-Type': 'application/json',
+                                                    'Authorization': token
+                                                },
+                                                body: JSON.stringify(data)
+                                            })
+                                            .then(response => response.json())
+                                            .then(result => {
+                                                alert(result.message);
+                                                window.location.reload(); 
+                                            })
+                                            .catch(error => {
+                                                console.error('Error:', error);
+                                                alert('An error occurred while updating the category.');
+                                            });
+                                        });
+                                    }
+                                    
+                                    if (e.target && e.target.id === 'deleteCategory') {
+                                        e.preventDefault();
+                                        
+                                        const isApproved = sessionStorage.getItem('isApproved');
+
+                                        if(isApproved !== 'not submitted'){
+                                            alert("Forecast has been submitted, no change allowed");
+                                            return;
+                                        }
+                                        
+                                        // Get the row that contains the clicked button
+                                        const row = e.target.closest('tr');
+
+                                        // Get the cells of the row
+                                        const idKategoriCell = row.cells[0];
+
+                                        const idKategori = idKategoriCell.textContent.trim();
+                                            
+                                        // Optionally: Send the updated data to the server
+                                        // This would involve making a fetch call similar to how you handled the Add Category functionality
+                                        const token = localStorage.getItem('token');
+
+                                        fetch(`http://localhost:8080/forecast-income/${idKategori}`, {
+                                            method: 'DELETE',
+                                            headers: {
+                                                'Content-Type': 'application/json',
+                                                'Authorization': token
+                                            },
+                                        })
+                                        .then(response => response.json())
+                                        .then(result => {
+                                            alert(result.message);
+                                            window.location.reload(); 
+                                        })
+                                        .catch(error => {
+                                            console.error('Error:', error);
+                                            alert('An error occurred while updating the category.');
+                                        });
+                                    }
+                                });
+                            });
+                        } else {
+                            document.getElementById('forecast-detail').innerHTML = `<p>No data available</p>`;
+                        }
+                    }
+                })
+                .catch(err => {
+                    console.error('Error fetching admin data:', err);
+                    document.getElementById('forecast-detail').innerHTML = `<p>Error fetching data</p>`;
+                });
+            }
+        }
+
+        function goBack() {
+            window.history.back();
+        }
+
+        document.getElementById('addCategory').addEventListener('click', function(e) {
+            e.preventDefault();
+        
+            // Create a new div to hold the input fields and the submit button
+            const newRow = document.createElement('div');
+            newRow.className = 'form-row'; // Add Bootstrap class for row styling if using Bootstrap
+        
+            const urlParams = new URLSearchParams(window.location.search);
+            const forecastId = urlParams.get('id');
+
+            // Create the first input box
+            const hiddenInput = document.createElement('input');
+            hiddenInput.type = 'hidden';
+            hiddenInput.name = 'idForecastPemasukan'; // The name to be used in the backend
+            hiddenInput.value = forecastId;
+
+            // Create the second input box
+            const input2 = document.createElement('input');
+            input2.type = 'text';
+            input2.name = 'Nama_Kategori';
+            input2.placeholder = 'Nama Kategori';
+            input2.className = 'form-control col'; // Bootstrap class for column width
+        
+            // Create the third input box
+            const input3 = document.createElement('input');
+            input3.type = 'text';
+            input3.name = 'Harga';
+            input3.placeholder = 'Harga';
+            input3.className = 'form-control col'; // Bootstrap class for column width
+        
+            // Create the submit button
+            const submitBtn = document.createElement('button');
+            submitBtn.type = 'button';
+            submitBtn.textContent = 'Submit';
+            submitBtn.className = 'btn btn-success col-auto'; // Bootstrap class for button styling
+        
+            // Append the inputs and button to the row
+            newRow.appendChild(hiddenInput);
+            newRow.appendChild(input2);
+            newRow.appendChild(input3);
+            newRow.appendChild(submitBtn);
+        
+            // Append the new row to the form
+            const form = document.getElementById('forecast-detail');
+            form.appendChild(newRow);
+        
+            // Add event listener to the submit button
+            submitBtn.addEventListener('click', function() {
+                // Get the values from the input fields
+                const idForecastPemasukan = hiddenInput.value;
+                const Nama_Kategori = input2.value;
+                const Harga = input3.value;
+        
+                const token = localStorage.getItem('token');
+        
+                // Prepare the data to send to the backend
+                const data = {
+                    idForecastPemasukan: idForecastPemasukan,
+                    Nama_Kategori: Nama_Kategori,
+                    Harga: Harga
+                };
+        
+                // Send a POST request to the backend API
+                fetch('http://localhost:8080/kategori-forecast-income', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': token
+                    },
+                    body: JSON.stringify(data)
+                })
+                .then(response => response.json())
+                .then(result => {
+                    alert(result.message);
+                    window.location.reload()
+                })
+                .catch(error => {
+                    console.error('Error:', error);
+                    alert('An error occurred while adding the category.');
+                });
+            });
+        });
+        
+
+    </script>
+</body>
+</html>

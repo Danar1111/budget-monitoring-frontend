@@ -1,0 +1,208 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Divisi</title>
+</head>
+<body>
+    <h1>Forecast Dashboard</h1>
+    <div id="forecast-income">
+        <p>Loading data...</p>
+    </div>
+    <div id="forecast-outcome">
+        <p>Loading data...</p>
+    </div>
+    <div id="actual-outcome">
+        <p>Loading data...</p>
+    </div>
+    <button onclick="logout()" class="btn btn-danger">Logout</button>
+
+    <script>
+        const token = localStorage.getItem('token');
+
+        if (!token) {
+            alert("Please login first!");
+            window.location.href = 'index.html';
+        } else {
+            const payload = JSON.parse(atob(token.split('.')[1]));
+            const { role, divisi } = payload;
+
+            if (role !== 'supervisor') {
+                alert("You do not have permission to access this page.");
+                window.location.href = 'index.html';
+            } else {
+                fetch('http://localhost:8080/forecast-income', {
+                    method: 'GET',
+                    headers: { 
+                        'Authorization': token,
+                        'Content-Type': 'application/json'
+                    }
+                })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.error) {
+                        document.getElementById('forecast-income').innerHTML = `<p>Error loading data: ${data.message}</p>`;
+                    } else {
+                        // Periksa apakah data dan data.users ada dan merupakan array
+                        if (Array.isArray(data.data)) {
+                            let htmlContent = `<h2>Forecast Income: </h2>`;
+                            htmlContent += '<table class="forecast-income">';
+                            htmlContent += '<thead> <tr> <th scope="col">ID Forecast Income</th> <th scope="col">Bulan</th> <th scope="col">Tahun</th> <th scope="col">Total</th> <th scope="col">Status</th> </tr> </thead>';
+                            htmlContent += '<tbody>';
+                            data.data.forEach(data => {
+                                htmlContent += `<tr><td> ${data.idForecastPemasukan}</td> <td>${data.Bulan}</td> <td>${data.Tahun}</td> <td>${data.Total_Forecast_Pemasukan}</td> <td>${data.isApproved}</td> <td> <a href="kategori_income.html?id=${data.idForecastPemasukan}"><button type="button" class="btn btn-primary detail-btn" data-approved="${data.isApproved}">Detail</button></a></td></tr>`;
+                            });
+                            htmlContent += '</tbody>';
+                            htmlContent += '</table>';
+                            htmlContent += '<button id="submitBtn" class="btn btn-success">Submit</button>';
+
+                            document.getElementById('forecast-income').innerHTML = htmlContent;
+
+                            document.querySelectorAll('.detail-btn').forEach(button => {
+                                button.addEventListener('click', function() {
+                                    const isApproved = this.getAttribute('data-approved');
+                            
+                                    // Store the isApproved value in sessionStorage (or localStorage)
+                                    sessionStorage.setItem('isApproved', isApproved);
+                                });
+                            });
+
+                            // Add event listener to the Submit button
+                            document.getElementById('submitBtn').addEventListener('click', function() {
+                                // Collect data from the table
+                                const lastRow = document.querySelector('.forecast-income tbody tr:last-child');
+
+                                // Extract the idForecastPemasukan from the last row
+                                const idForecastPemasukan = lastRow.cells[0].innerText;
+
+                                // Send data to the backend
+                                fetch(`http://localhost:8080/forecast-income/submit/${idForecastPemasukan}`, {
+                                    method: 'PUT',
+                                    headers: {
+                                        'Content-Type': 'application/json',
+                                        'Authorization': token
+                                    },
+                                })
+                                .then(response => response.json())
+                                .then(result => {
+                                    alert(result.message);
+                                    window.location.reload(); 
+                                })
+                            })
+                        }
+                    }
+                })
+                .catch(err => {
+                    console.error('Error fetching admin data:', err);
+                    document.getElementById('forecast-income').innerHTML = `<p>Error fetching data</p>`;
+                });
+
+                fetch('http://localhost:8080/forecast-outcome', {
+                    method: 'GET',
+                    headers: { 
+                        'Authorization': token,
+                        'Content-Type': 'application/json'
+                    }
+                })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.error) {
+                        document.getElementById('forecast-outcome').innerHTML = `<p>Error loading data: ${data.message}</p>`;
+                    } else {
+                        // Periksa apakah data dan data.users ada dan merupakan array
+                        if (Array.isArray(data.data)) {
+                            let htmlContent = `<h2>Forecast Outcome: </h2>`;
+                            htmlContent += '<table class="table">';
+                            htmlContent += '<thead> <tr> <th scope="col">ID Forecast Outcome</th> <th scope="col">Bulan</th> <th scope="col">Tahun</th> <th scope="col">Total</th> <th scope="col">Status</th> </tr> </thead';
+                            htmlContent += '<tbody>';
+                            data.data.forEach(data => {
+                                htmlContent += `<tr><td>${data.idForecastPengeluaran}</td> <td>${data.Bulan}</td> <td>${data.Tahun}</td> <td>${data.Total_Forecast_Pengeluaran}</td> <td>${data.isApproved}</td> <td> <a href="kategori_outcome.html?id=${data.idForecastPengeluaran}"><button type="button" class="btn btn-primary detail-out-btn">Detail</button></a></td></tr>`;
+                            });
+                            htmlContent += '</tbody>';
+                            htmlContent += '</table>';
+                            htmlContent += '<button id="submitBtn" class="btn btn-success">Submit</button>';
+
+                            document.getElementById('forecast-outcome').innerHTML = htmlContent;
+
+                            document.querySelectorAll('.detail-out-btn').forEach(button => {
+                                button.addEventListener('click', function() {
+                                    const isApproved = this.getAttribute('data-approved');
+                            
+                                    // Store the isApproved value in sessionStorage (or localStorage)
+                                    sessionStorage.setItem('isApproved', isApproved);
+                                });
+                            });
+
+                            document.getElementById('submitBtn').addEventListener('click', function() {
+                                // Collect data from the table
+                                const lastRow = document.querySelector('.forecast-outcome tbody tr:last-child');
+
+                                // Extract the idForecastPemasukan from the last row
+                                const idForecastPengeluaran = lastRow.cells[0].innerText;
+
+                                // Send data to the backend
+                                fetch(`http://localhost:8080/forecast-outcome/submit/${idForecastPengeluaran}`, {
+                                    method: 'PUT',
+                                    headers: {
+                                        'Content-Type': 'application/json',
+                                        'Authorization': token
+                                    },
+                                })
+                                .then(response => response.json())
+                                .then(result => {
+                                    alert(result.message);
+                                    window.location.reload(); 
+                                })
+                            })
+                        }
+                    }
+                })
+                .catch(err => {
+                    console.error('Error fetching admin data:', err);
+                    document.getElementById('forecast-outcome').innerHTML = `<p>Error fetching data</p>`;
+                });
+
+                fetch('http://localhost:8080/actual-outcome', {
+                    method: 'GET',
+                    headers: { 
+                        'Authorization': token,
+                        'Content-Type': 'application/json'
+                    }
+                })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.error) {
+                        document.getElementById('actual-outcome').innerHTML = `<p>Error loading data: ${data.message}</p>`;
+                    } else {
+                        // Periksa apakah data dan data.users ada dan merupakan array
+                        if (Array.isArray(data.data)) {
+                            let htmlContent = `<h2>Actual Outcome: </h2>`;
+                            htmlContent += '<table class="table">';
+                            htmlContent += '<thead> <tr> <th scope="col">ID Actual Outcome</th> <th scope="col">Bulan</th> <th scope="col">Tahun</th> <th scope="col">Total</th> <th scope="col">Status</th> </tr> </thead';
+                            htmlContent += '<tbody>';
+                            data.data.forEach(data => {
+                                htmlContent += `<tr><td>${data.idActualPengeluaran}</td> <td>${data.Bulan}</td> <td>${data.Tahun}</td> <td>${data.Total_Actual_Pengeluaran}</td> <td> <a href="item_outcome.html?id=${data.idActualPengeluaran}"><button type="button" class="btn btn-primary">Detail</button></a></td></tr>`;
+                            });
+                            htmlContent += '</tbody>';
+                            htmlContent += '</table>';
+                            htmlContent += '<button id="submitBtn" class="btn btn-success">Submit</button>';
+
+                            document.getElementById('actual-outcome').innerHTML = htmlContent;
+                        }
+                    }
+                })
+                .catch(err => {
+                    console.error('Error fetching admin data:', err);
+                    document.getElementById('forecast-outcome').innerHTML = `<p>Error fetching data</p>`;
+                });
+            }
+        }
+
+        function logout() {
+            localStorage.removeItem('token');
+            window.location.href = 'index.html';
+        }
+    </script>
+</body>
+</html>
