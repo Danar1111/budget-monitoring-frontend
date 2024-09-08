@@ -275,6 +275,7 @@
             hiddenInput.value = actualId;
 
             const selectInput = document.createElement('select');
+            let anggaranDict = {};
             fetch(`http://localhost:8080/forecast-outcome/${actualId}`,{
                 method: 'GET',
                     headers: {
@@ -293,6 +294,8 @@
 
                         // Loop through the data and create an option element for each item
                     data.data.forEach(kategori => {
+                        anggaranDict[kategori.idKategori] = kategori.Harga; 
+
                         const option = document.createElement('option');
                         option.value = kategori.idKategori; // Set the value to the category ID
                         option.text = kategori.Nama_Kategori; // Set the display text to the category name
@@ -349,7 +352,43 @@
                 const Harga = input3.value;
         
                 const token = localStorage.getItem('token');
-        
+                
+                fetch(`http://localhost:8080/actual-outcome/${actualId}`, {
+                    method: 'GET',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': token
+                    },
+                })
+                .then(response => response.json())
+                .then(data => {
+                    if (Array.isArray(data.data)) {
+                        for (let item of data.data) {
+                            if(item.idKategori == idKategori) {
+                                const sisa_anggaran = parseFloat(item.Sisa_Anggaran_Kategori); // Ensure it's a number
+                                const HargaValue = parseFloat(Harga); // Ensure Harga is also a number
+                                const total_anggaran_new = sisa_anggaran + HargaValue;
+                
+                                // Check against anggaran limit
+                                if (total_anggaran_new > anggaranDict[idKategori]) {
+                                    alert("Exceeding budget capacity");
+                                    return; // Stop further execution
+                                } else {
+                                    // Proceed with your logic and break out of the loop
+                                    console.log("Within budget, proceeding with the operation.");
+                                    break; // Break the loop after finding the matching category and processing
+                                }
+                            }
+                        }
+                    } else {
+                        console.error('No data found or incorrect data format.');
+                    }
+                })
+                .catch(error => {
+                    console.error('Error:', error);
+                    alert('An error occurred while adding the item.');
+                });
+
                 // Prepare the data to send to the backend
                 const data = {
                     idActualPengeluaran: idActualPengeluaran,
@@ -378,7 +417,6 @@
                 });
             });
         });
-        
 
     </script>
 </body>
