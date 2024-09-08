@@ -14,7 +14,7 @@
     </form>
     <button id="addItem" type="button" class="btn btn-warning">Add Item</button>
     <button onclick="goBack()" class="btn btn-warning">Go Back</button>
-    <a href="request.html"><button type="button" class="btn btn-warning">Outcome Request</button></a>
+    <button onclick="goRequest()">Detail</button>
 
     <script>
         // Cek apakah token ada di localStorage
@@ -31,7 +31,7 @@
                 document.getElementById('actual-detail').innerHTML = '<p>User ID not provided</p>';
             } else {
                     // Fetch detail pengguna dari backend
-                fetch(`http://localhost:8080/actual-outcome/${actualId}`, {
+                fetch(`http://vps.danar.site:8080/actual-outcome/${actualId}`, {
                     method: 'GET',
                     headers: {
                         'Authorization': token,
@@ -65,7 +65,7 @@
                     document.getElementById('actual-detail').innerHTML = `<p>Error fetching data</p>`;
                 });
 
-                fetch(`http://localhost:8080/request-item-actual-outcome/${actualId}`, {
+                fetch(`http://vps.danar.site:8080/request-item-actual-outcome/${actualId}`, {
                     method: 'GET',
                     headers: {
                         'Authorization': token,
@@ -123,7 +123,7 @@
                                         selectElement.className = 'form-control';
                     
                                         // Fetch available categories to populate the dropdown
-                                        fetch(`http://localhost:8080/forecast-outcome/${actualId}`,{
+                                        fetch(`http://vps.danar.site:8080/forecast-outcome/${actualId}`,{
                                             method: 'GET',
                                                 headers: {
                                                     'Authorization': token,
@@ -182,7 +182,7 @@
                                                 Harga: newHarga
                                             };
                                             console.log(data)
-                                            fetch(`http://localhost:8080/request-item-actual-outcome/${idItem}`, {
+                                            fetch(`http://vps.danar.site:8080/request-item-actual-outcome/${idItem}`, {
                                                 method: 'PUT',
                                                 headers: {
                                                     'Content-Type': 'application/json',
@@ -224,7 +224,7 @@
                                         // This would involve making a fetch call similar to how you handled the Add Item functionality
                                         const token = localStorage.getItem('token');
                     
-                                        fetch(`http://localhost:8080/request-item-actual-outcome/${idItem}`, {
+                                        fetch(`http://vps.danar.site:8080/request-item-actual-outcome/${idItem}`, {
                                             method: 'DELETE',
                                             headers: {
                                                 'Content-Type': 'application/json',
@@ -259,6 +259,13 @@
             window.history.back();
         }
 
+        function goRequest() {
+            const urlParams = new URLSearchParams(window.location.search);
+            const actualId = urlParams.get('id');
+
+            window.location.href = `request.html?id=${actualId}`;
+        }
+
         document.getElementById('addItem').addEventListener('click', function(e) {
             e.preventDefault();
         
@@ -277,7 +284,7 @@
 
             const selectInput = document.createElement('select');
             let anggaranDict = {};
-            fetch(`http://localhost:8080/forecast-outcome/${actualId}`,{
+            fetch(`http://vps.danar.site:8080/forecast-outcome/${actualId}`,{
                 method: 'GET',
                     headers: {
                         'Authorization': token,
@@ -354,7 +361,7 @@
         
                 const token = localStorage.getItem('token');
                 
-                fetch(`http://localhost:8080/actual-outcome/${actualId}`, {
+                fetch(`http://vps.danar.site:8080/actual-outcome/${actualId}`, {
                     method: 'GET',
                     headers: {
                         'Content-Type': 'application/json',
@@ -399,7 +406,7 @@
                 };
         
                 // Send a POST request to the backend API
-                fetch('http://localhost:8080/item-actual-outcome', {
+                fetch('http://vps.danar.site:8080/item-actual-outcome', {
                     method: 'POST',
                     headers: {
                         'Content-Type': 'application/json',
