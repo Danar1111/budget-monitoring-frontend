@@ -1,0 +1,172 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Actual Dashboard</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.0.2/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-EVSTQN3/azprG1Anm3QDgpJLIm9Nao0Yz1ztcQTwFspd3yD65VohhpuuCOmLASjC" crossorigin="anonymous">
+</head>
+<body class="p-5">
+    <h1>Actual Income Detail</h1>
+    <form id="item"></form>
+        <div class="mb-3">
+            <label for="namaItem" class="form-label">Nama Item</label>
+            <input type="text" class="form-control" id="namaItem">
+        </div>
+        <div class="mb-3">
+            <label for="harga" class="form-label">Harga</label>
+            <input type="number" class="form-control" id="harga">
+        </div>
+        <div class="mb-3">
+            <label for="kategori" class="form-label">Kategori</label>
+            <select class="form-select" aria-label="Default select example" id="kategori">
+                <option selected value="-">-</option>
+            </select>
+        </div>
+    </form>
+    <button type="submit" form="item" class="btn btn-primary">submit</button>
+    <button onclick="back()" class="btn btn-danger">back</button>
+    <div id="actual-data">
+        <p>Loading data...</p>
+    </div>
+
+    <script>
+        const token = localStorage.getItem('token');
+
+        if (!token) {
+            alert("Please login first!");
+            window.location.href = '../index.html';
+        } else {
+            const urlParams = new URLSearchParams(window.location.search);
+            const aid = urlParams.get('id');
+
+            if (!aid) {
+                document.getElementById('actual-data').innerHTML = '<p>User ID not provided</p>';
+            } else {
+                const payload = JSON.parse(atob(token.split('.')[1]));
+                const { role, divisi } = payload;
+
+                if (role !== 'supervisor' || divisi !== 'finance') {
+                    alert("You do not have permission to access this page.");
+                    window.location.href = '../index.html';
+                } else {
+                    Promise.all([
+                        fetch(`http://vps.danar.site:8080/item-actual-income/${aid}`, {
+                            method: 'GET',
+                            headers: {
+                                'Authorization': token,
+                                'Content-Type': 'application/json'
+                            }
+                        }),
+                        fetch(`http://vps.danar.site:8080/get-all-category-income/${aid}`, {
+                            method: 'GET',
+                            headers: {
+                                'Authorization': token,
+                                'Content-Type': 'application/json'
+                            }
+                        })
+                    ])
+                    .then(async ([response1, response2]) => {
+                        const data = await response1.json();
+                        const category = await response2.json();
+
+                        console.log(category);
+                        
+
+                        if (data.error) {
+                            document.getElementById('actual-data').innerHTML = `<p>Error loading data: ${data.message}</p>`;
+                        } else if (Array.isArray(data.data)) {
+                            let htmlContent = `
+                                <table class="table table-striped">
+                                    <thead>
+                                        <tr>
+                                            <th scope="col">ID Item</th>
+                                            <th scope="col">ID Actual Pemasukan</th>
+                                            <th scope="col">ID User</th>
+                                            <th scope="col">Nama Item</th>
+                                            <th scope="col">Harga</th>
+                                            <th scope="col">ID Kategori</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>`;
+
+                            data.data.forEach(item => {
+                                htmlContent += `
+                                    <tr>
+                                        <td>${item.idItem}</td>
+                                        <td>${item.idActualPemasukan}</td>
+                                        <td>${item.idUser}</td>
+                                        <td>${item.Nama_Item}</td>
+                                        <td>Rp${parseInt(item.Harga).toLocaleString('id-ID')}</td>
+                                        <td>${item.idKategori}</td>
+                                        </tr>`;
+                            });
+
+                            htmlContent += `</tbody></table>`;
+                            document.getElementById('actual-data').innerHTML = htmlContent;
+
+                            const selectElement = document.getElementById('kategori');
+                            category.data.forEach(item => {
+                                const option = document.createElement('option');
+                                option.value = item.idKategori;
+                                option.textContent = item.Nama_Kategori;
+                                
+                                selectElement.appendChild(option);
+                            });
+
+                        } else {
+                            document.getElementById('actual-data').innerHTML = `<p>No data available</p>`;
+                        }
+                    })
+                    .catch(err => {
+                        console.error('Error fetching data:', err);
+                        document.getElementById('actual-data').innerHTML = `<p>Error fetching data</p>`;
+                    });
+                }
+            }
+        }
+
+        function back() {
+            window.location.href = 'actual-income.html';
+        }
+
+        document.getElementById('item').addEventListener('submit', async function(e) {
+            e.preventDefault();
+            
+            const urlParams = new URLSearchParams(window.location.search);
+            
+            const idActualPemasukan = urlParams.get('id');
+            const Nama_Item = document.getElementById('namaItem').value;
+            const Harga = document.getElementById('harga').value;
+            const idKategori = document.getElementById('kategori').value;
+
+            const token = localStorage.getItem('token');
+            
+            try {
+                const response = await fetch(`http://vps.danar.site:8080/item-actual-income`, {
+                    method: 'POST',
+                    headers: {
+                        'Authorization': token,
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({ idActualPemasukan, idKategori, Nama_Item, Harga }),
+                });
+
+                const data = await response.json();
+                console.log(data);
+                
+
+                if (response.ok && !data.error) {
+                    alert('Adding item successful!');
+                } else {
+                    alert(data.message || 'Adding failed');
+                }
+                location.reload();
+            } catch (error) {
+                console.error('Error during update:', error);
+                alert('An error occurred during update');
+            }
+        });
+    </script>
+</body>
+</html>
