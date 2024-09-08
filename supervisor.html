@@ -62,7 +62,7 @@
                             document.querySelectorAll('.detail-btn').forEach(button => {
                                 button.addEventListener('click', function() {
                                     const isApproved = this.getAttribute('data-approved');
-                            
+                                    console.log(isApproved)
                                     // Store the isApproved value in sessionStorage (or localStorage)
                                     sessionStorage.setItem('isApproved', isApproved);
                                 });
@@ -117,7 +117,7 @@
                             htmlContent += '<thead> <tr> <th scope="col">ID Forecast Outcome</th> <th scope="col">Bulan</th> <th scope="col">Tahun</th> <th scope="col">Total</th> <th scope="col">Status</th> </tr> </thead';
                             htmlContent += '<tbody>';
                             data.data.forEach(data => {
-                                htmlContent += `<tr><td>${data.idForecastPengeluaran}</td> <td>${data.Bulan}</td> <td>${data.Tahun}</td> <td>${data.Total_Forecast_Pengeluaran}</td> <td>${data.isApproved}</td> <td> <a href="kategori_outcome.html?id=${data.idForecastPengeluaran}"><button type="button" class="btn btn-primary detail-out-btn">Detail</button></a></td></tr>`;
+                                htmlContent += `<tr><td>${data.idForecastPengeluaran}</td> <td>${data.Bulan}</td> <td>${data.Tahun}</td> <td>${data.Total_Forecast_Pengeluaran}</td> <td>${data.isApproved}</td> <td> <a href="kategori_outcome.html?id=${data.idForecastPengeluaran}"><button type="button" class="btn btn-primary detail-out-btn" data-approved="${data.isApproved}">Detail</button></a></td></tr>`;
                             });
                             htmlContent += '</tbody>';
                             htmlContent += '</table>';
@@ -128,6 +128,7 @@
                             document.querySelectorAll('.detail-out-btn').forEach(button => {
                                 button.addEventListener('click', function() {
                                     const isApproved = this.getAttribute('data-approved');
+                                    console.log(isApproved)
                             
                                     // Store the isApproved value in sessionStorage (or localStorage)
                                     sessionStorage.setItem('isApproved', isApproved);

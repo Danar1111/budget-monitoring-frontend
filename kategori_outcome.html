@@ -52,6 +52,121 @@
                             htmlContent += '</tbody>';
                             htmlContent += '</table>';
                             document.getElementById('forecast-detail').innerHTML = htmlContent;
+
+                            document.querySelectorAll('#forecast-detail .btn').forEach(button => {
+                                button.addEventListener('click', function(e) {
+                                    if (e.target && e.target.id === 'editCategory') {
+                                        e.preventDefault();
+                                        const isApproved = sessionStorage.getItem('isApproved');
+                                        console.log(isApproved)
+                                        if(isApproved !== 'not submitted'){
+                                            alert("Forecast has been submitted, no change allowed");
+                                            return;
+                                        }
+                    
+                                        // Get the row that contains the clicked button
+                                        const row = e.target.closest('tr');
+                    
+                                        // Get the cells of the row
+                                        const idKategoriCell = row.cells[0];
+                                        const namaKategoriCell = row.cells[1];
+                                        const hargaCell = row.cells[2];
+                    
+                                        // Store the original values
+                                        const originalNamaKategori = namaKategoriCell.textContent.trim();
+                                        const originalHarga = hargaCell.textContent.trim();
+                    
+                                        // Replace the cell content with input fields
+                                        namaKategoriCell.innerHTML = `<input type="text" value="${originalNamaKategori}" class="form-control">`;
+                                        hargaCell.innerHTML = `<input type="text" value="${originalHarga}" class="form-control">`;
+                    
+                                        // Replace the Edit button with an OK button
+                                        const editButtonCell = row.cells[3];
+                                        editButtonCell.innerHTML = `<button type="button" class="btn btn-success" id="okCategory">OK</button>`;
+                    
+                                        // Add event listener to the OK button
+                                        editButtonCell.querySelector('#okCategory').addEventListener('click', function() {
+                                            // Get the new values from the input fields
+                                            const idKategori = idKategoriCell.textContent.trim();
+                                            const newNamaKategori = namaKategoriCell.querySelector('input').value.trim();
+                                            const newHarga = hargaCell.querySelector('input').value.trim();
+                                            
+                                            // Update the row with the new values
+                                            namaKategoriCell.textContent = newNamaKategori;
+                                            hargaCell.textContent = newHarga;
+                    
+                                            // Replace the OK button with the Edit button again
+                                            editButtonCell.innerHTML = `<button type="button" class="btn btn-primary" id="editCategory">EDIT</button>`;
+                    
+                                            // Optionally: Send the updated data to the server
+                                            // This would involve making a fetch call similar to how you handled the Add Category functionality
+                                            const token = localStorage.getItem('token');
+                                            const data = {
+                                                Nama_Kategori: newNamaKategori,
+                                                Harga: newHarga
+                                            };
+                    
+                                            fetch(`http://localhost:8080/forecast-outcome/${idKategori}`, {
+                                                method: 'PUT',
+                                                headers: {
+                                                    'Content-Type': 'application/json',
+                                                    'Authorization': token
+                                                },
+                                                body: JSON.stringify(data)
+                                            })
+                                            .then(response => response.json())
+                                            .then(result => {
+                                                alert(result.message);
+                                                window.location.reload(); 
+                                            })
+                                            .catch(error => {
+                                                console.error('Error:', error);
+                                                alert('An error occurred while updating the category.');
+                                            });
+                                        });
+                                    }
+                                    
+                                    if (e.target && e.target.id === 'deleteCategory') {
+                                        e.preventDefault();
+                                        
+                                        const isApproved = sessionStorage.getItem('isApproved');
+                    
+                                        if(isApproved !== 'not submitted'){
+                                            alert("Forecast has been submitted, no change allowed");
+                                            return;
+                                        }
+                                        
+                                        // Get the row that contains the clicked button
+                                        const row = e.target.closest('tr');
+                    
+                                        // Get the cells of the row
+                                        const idKategoriCell = row.cells[0];
+                    
+                                        const idKategori = idKategoriCell.textContent.trim();
+                                            
+                                        // Optionally: Send the updated data to the server
+                                        // This would involve making a fetch call similar to how you handled the Add Category functionality
+                                        const token = localStorage.getItem('token');
+                    
+                                        fetch(`http://localhost:8080/forecast-outcome/${idKategori}`, {
+                                            method: 'DELETE',
+                                            headers: {
+                                                'Content-Type': 'application/json',
+                                                'Authorization': token
+                                            },
+                                        })
+                                        .then(response => response.json())
+                                        .then(result => {
+                                            alert(result.message);
+                                            window.location.reload(); 
+                                        })
+                                        .catch(error => {
+                                            console.error('Error:', error);
+                                            alert('An error occurred while updating the category.');
+                                        });
+                                    }
+                                });
+                            });
                         } else {
                             document.getElementById('forecast-detail').innerHTML = `<p>No data available</p>`;
                         }
@@ -68,123 +183,12 @@
             window.history.back();
         }
 
-        document.querySelectorAll('#forecast-detail .btn').forEach(button => {
-            button.addEventListener('click', function(e) {
-                if (e.target && e.target.id === 'editCategory') {
-                    e.preventDefault();
-                    const isApproved = sessionStorage.getItem('isApproved');
-
-                    if(isApproved !== 'not submitted'){
-                        alert("Forecast has been submitted, no change allowed");
-                        return;
-                    }
-
-                    // Get the row that contains the clicked button
-                    const row = e.target.closest('tr');
-
-                    // Get the cells of the row
-                    const idKategoriCell = row.cells[0];
-                    const namaKategoriCell = row.cells[1];
-                    const hargaCell = row.cells[2];
-
-                    // Store the original values
-                    const originalNamaKategori = namaKategoriCell.textContent.trim();
-                    const originalHarga = hargaCell.textContent.trim();
-
-                    // Replace the cell content with input fields
-                    namaKategoriCell.innerHTML = `<input type="text" value="${originalNamaKategori}" class="form-control">`;
-                    hargaCell.innerHTML = `<input type="text" value="${originalHarga}" class="form-control">`;
-
-                    // Replace the Edit button with an OK button
-                    const editButtonCell = row.cells[3];
-                    editButtonCell.innerHTML = `<button type="button" class="btn btn-success" id="okCategory">OK</button>`;
-
-                    // Add event listener to the OK button
-                    editButtonCell.querySelector('#okCategory').addEventListener('click', function() {
-                        // Get the new values from the input fields
-                        const idKategori = idKategoriCell.textContent.trim();
-                        const newNamaKategori = namaKategoriCell.querySelector('input').value.trim();
-                        const newHarga = hargaCell.querySelector('input').value.trim();
-                        
-                        // Update the row with the new values
-                        namaKategoriCell.textContent = newNamaKategori;
-                        hargaCell.textContent = newHarga;
-
-                        // Replace the OK button with the Edit button again
-                        editButtonCell.innerHTML = `<button type="button" class="btn btn-primary" id="editCategory">EDIT</button>`;
-
-                        // Optionally: Send the updated data to the server
-                        // This would involve making a fetch call similar to how you handled the Add Category functionality
-                        const token = localStorage.getItem('token');
-                        const data = {
-                            Nama_Kategori: newNamaKategori,
-                            Harga: newHarga
-                        };
-
-                        fetch(`http://localhost:8080/forecast-outcome/${idKategori}`, {
-                            method: 'PUT',
-                            headers: {
-                                'Content-Type': 'application/json',
-                                'Authorization': token
-                            },
-                            body: JSON.stringify(data)
-                        })
-                        .then(response => response.json())
-                        .then(result => {
-                            alert(result.message);
-                            window.location.reload(); 
-                        })
-                        .catch(error => {
-                            console.error('Error:', error);
-                            alert('An error occurred while updating the category.');
-                        });
-                    });
-                }
-                
-                if (e.target && e.target.id === 'deleteCategory') {
-                    e.preventDefault();
-                    
-                    const isApproved = sessionStorage.getItem('isApproved');
-
-                    if(isApproved !== 'not submitted'){
-                        alert("Forecast has been submitted, no change allowed");
-                        return;
-                    }
-                    
-                    // Get the row that contains the clicked button
-                    const row = e.target.closest('tr');
-
-                    // Get the cells of the row
-                    const idKategoriCell = row.cells[0];
-
-                    const idKategori = idKategoriCell.textContent.trim();
-                        
-                    // Optionally: Send the updated data to the server
-                    // This would involve making a fetch call similar to how you handled the Add Category functionality
-                    const token = localStorage.getItem('token');
-
-                    fetch(`http://localhost:8080/forecast-outcome/${idKategori}`, {
-                        method: 'DELETE',
-                        headers: {
-                            'Content-Type': 'application/json',
-                            'Authorization': token
-                        },
-                    })
-                    .then(response => response.json())
-                    .then(result => {
-                        alert(result.message);
-                        window.location.reload(); 
-                    })
-                    .catch(error => {
-                        console.error('Error:', error);
-                        alert('An error occurred while updating the category.');
-                    });
-                }
-            });
-        });
-
         document.getElementById('addCategory').addEventListener('click', function(e) {
             e.preventDefault();
+            if(isApproved !== 'not submitted'){
+                alert("Forecast has been submitted, no change allowed");
+                return;
+            }
         
             // Create a new div to hold the input fields and the submit button
             const newRow = document.createElement('div');

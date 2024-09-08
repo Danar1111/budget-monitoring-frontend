@@ -6,10 +6,9 @@
     <title>Kategori Income</title>
 </head>
 <body>
-    <form id="forecast-detail">
-        <p>Loading forecast details...</p>
+    <form id="request-detail">
+        <p>Loading request details...</p>
     </form>
-    <button id="addCategory" type="button" class="btn btn-warning">Add Category</button>
     <button onclick="goBack()" class="btn btn-warning">Go Back</button>
 
     <script>
@@ -21,13 +20,13 @@
         } else {
             // Ambil id dari query string
             const urlParams = new URLSearchParams(window.location.search);
-            const forecastId = urlParams.get('id');
+            const requestId = urlParams.get('id');
 
-            if (!forecastId) {
-                document.getElementById('forecast-detail').innerHTML = '<p>User ID not provided</p>';
+            if (!requestId) {
+                document.getElementById('request-detail').innerHTML = '<p>User ID not provided</p>';
             } else {
                     // Fetch detail pengguna dari backend
-                fetch(`http://localhost:8080/forecast-income/${forecastId}`, {
+                fetch(`http://localhost:8080/getrequestactual`, {
                     method: 'GET',
                     headers: {
                         'Authorization': token,
@@ -37,11 +36,11 @@
                 .then(response => response.json()) 
                 .then(data => {
                     if (data.error) {
-                        document.getElementById('forecast-detail').innerHTML = `<p>Error loading data: ${data.message}</p>`;
+                        document.getElementById('request-detail').innerHTML = `<p>Error loading data: ${data.message}</p>`;
                     } else {
                         // Periksa apakah data dan data.users ada dan merupakan array
                         if (Array.isArray(data.data)) {
-                            let htmlContent = `<h2>Forecast Income Detail: </h2>`;
+                            let htmlContent = `<h2>Request Income Detail: </h2>`;
                             htmlContent += '<table class="table">';
                             htmlContent += '<thead> <tr> <th scope="col">ID Kategori</th> <th scope="col">Nama Kategori</th> <th scope="col">Harga</th> </tr> </thead';
                             htmlContent += '<tbody>';
@@ -51,16 +50,16 @@
                             });
                             htmlContent += '</tbody>';
                             htmlContent += '</table>';
-                            document.getElementById('forecast-detail').innerHTML = htmlContent;
+                            document.getElementById('request-detail').innerHTML = htmlContent;
 
-                            document.querySelectorAll('#forecast-detail .btn').forEach(button => {
+                            document.querySelectorAll('#request-detail .btn').forEach(button => {
                                 button.addEventListener('click', function(e) {
                                     if (e.target && e.target.id === 'editCategory') {
                                         e.preventDefault();
                                         const isApproved = sessionStorage.getItem('isApproved');
                                         console.log(isApproved)
                                         if(isApproved !== 'not submitted'){
-                                            alert("Forecast has been submitted, no change allowed");
+                                            alert("Request has been submitted, no change allowed");
                                             return;
                                         }
                     
@@ -106,7 +105,7 @@
                                                 Harga: newHarga
                                             };
 
-                                            fetch(`http://localhost:8080/forecast-income/${idKategori}`, {
+                                            fetch(`http://localhost:8080/request-income/${idKategori}`, {
                                                 method: 'PUT',
                                                 headers: {
                                                     'Content-Type': 'application/json',
@@ -132,7 +131,7 @@
                                         const isApproved = sessionStorage.getItem('isApproved');
 
                                         if(isApproved !== 'not submitted'){
-                                            alert("Forecast has been submitted, no change allowed");
+                                            alert("Request has been submitted, no change allowed");
                                             return;
                                         }
                                         
@@ -148,7 +147,7 @@
                                         // This would involve making a fetch call similar to how you handled the Add Category functionality
                                         const token = localStorage.getItem('token');
 
-                                        fetch(`http://localhost:8080/forecast-income/${idKategori}`, {
+                                        fetch(`http://localhost:8080/request-income/${idKategori}`, {
                                             method: 'DELETE',
                                             headers: {
                                                 'Content-Type': 'application/json',
@@ -168,13 +167,13 @@
                                 });
                             });
                         } else {
-                            document.getElementById('forecast-detail').innerHTML = `<p>No data available</p>`;
+                            document.getElementById('request-detail').innerHTML = `<p>No data available</p>`;
                         }
                     }
                 })
                 .catch(err => {
                     console.error('Error fetching admin data:', err);
-                    document.getElementById('forecast-detail').innerHTML = `<p>Error fetching data</p>`;
+                    document.getElementById('request-detail').innerHTML = `<p>Error fetching data</p>`;
                 });
             }
         }
@@ -188,7 +187,7 @@
             const isApproved = sessionStorage.getItem('isApproved');
     
             if(isApproved !== 'not submitted'){
-                alert("Forecast has been submitted, no change allowed");
+                alert("Request has been submitted, no change allowed");
                 return;
             }
         
@@ -197,13 +196,13 @@
             newRow.className = 'form-row'; // Add Bootstrap class for row styling if using Bootstrap
         
             const urlParams = new URLSearchParams(window.location.search);
-            const forecastId = urlParams.get('id');
+            const requestId = urlParams.get('id');
 
             // Create the first input box
             const hiddenInput = document.createElement('input');
             hiddenInput.type = 'hidden';
-            hiddenInput.name = 'idForecastPemasukan'; // The name to be used in the backend
-            hiddenInput.value = forecastId;
+            hiddenInput.name = 'idRequestPemasukan'; // The name to be used in the backend
+            hiddenInput.value = requestId;
 
             // Create the second input box
             const input2 = document.createElement('input');
@@ -232,13 +231,13 @@
             newRow.appendChild(submitBtn);
         
             // Append the new row to the form
-            const form = document.getElementById('forecast-detail');
+            const form = document.getElementById('request-detail');
             form.appendChild(newRow);
         
             // Add event listener to the submit button
             submitBtn.addEventListener('click', function() {
                 // Get the values from the input fields
-                const idForecastPemasukan = hiddenInput.value;
+                const idRequestPemasukan = hiddenInput.value;
                 const Nama_Kategori = input2.value;
                 const Harga = input3.value;
         
@@ -246,13 +245,13 @@
         
                 // Prepare the data to send to the backend
                 const data = {
-                    idForecastPemasukan: idForecastPemasukan,
+                    idRequestPemasukan: idRequestPemasukan,
                     Nama_Kategori: Nama_Kategori,
                     Harga: Harga
                 };
         
                 // Send a POST request to the backend API
-                fetch('http://localhost:8080/kategori-forecast-income', {
+                fetch('http://localhost:8080/kategori-request-income', {
                     method: 'POST',
                     headers: {
                         'Content-Type': 'application/json',
