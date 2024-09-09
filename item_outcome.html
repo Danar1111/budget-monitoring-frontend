@@ -15,7 +15,7 @@
     </form>
     <button id="addItem" type="button" class="btn btn-warning">Add Item</button>
     <button onclick="goBack()" class="btn btn-warning">Go Back</button>
-    <a href="request.html"><button type="button" class="btn btn-warning">Outcome Request</button></a>
+    <button onclick="goRequest()">Detail</button>
 
     <script>
         // Cek apakah token ada di localStorage
@@ -258,6 +258,13 @@
 
         function goBack() {
             window.history.back();
+        }
+
+        function goRequest() {
+            const urlParams = new URLSearchParams(window.location.search);
+            const actualId = urlParams.get('id');
+
+            window.location.href = `request.html?id=${actualId}`;
         }
 
         document.getElementById('addItem').addEventListener('click', function(e) {

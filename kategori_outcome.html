@@ -28,7 +28,7 @@
                 document.getElementById('forecast-detail').innerHTML = '<p>User ID not provided</p>';
             } else {
                     // Fetch detail pengguna dari backend
-                fetch(`http://localhost:8080/forecast-outcome/${forecastId}`, {
+                fetch(`http://vps.danar.site:8080/forecast-outcome/${forecastId}`, {
                     method: 'GET',
                     headers: {
                         'Authorization': token,
@@ -107,7 +107,7 @@
                                                 Harga: newHarga
                                             };
                     
-                                            fetch(`http://localhost:8080/forecast-outcome/${idKategori}`, {
+                                            fetch(`http://vps.danar.site:8080/forecast-outcome/${idKategori}`, {
                                                 method: 'PUT',
                                                 headers: {
                                                     'Content-Type': 'application/json',
@@ -149,7 +149,7 @@
                                         // This would involve making a fetch call similar to how you handled the Add Category functionality
                                         const token = localStorage.getItem('token');
                     
-                                        fetch(`http://localhost:8080/forecast-outcome/${idKategori}`, {
+                                        fetch(`http://vps.danar.site:8080/forecast-outcome/${idKategori}`, {
                                             method: 'DELETE',
                                             headers: {
                                                 'Content-Type': 'application/json',
@@ -251,7 +251,7 @@
                 };
         
                 // Send a POST request to the backend API
-                fetch('http://localhost:8080/kategori-forecast-outcome', {
+                fetch('http://vps.danar.site:8080/kategori-forecast-outcome', {
                     method: 'POST',
                     headers: {
                         'Content-Type': 'application/json',

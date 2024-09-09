@@ -28,6 +28,11 @@
         } else {
             const payload = JSON.parse(atob(token.split('.')[1]));
             const { role, divisi } = payload;
+
+            if (role !== 'supervisor') {
+                alert("You do not have permission to access this page.");
+                window.location.href = 'index.html';
+            } else {
                 fetch('http://vps.danar.site:8080/forecast-income', {
                     method: 'GET',
                     headers: { 
