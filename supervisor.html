@@ -115,7 +115,7 @@
                         if (Array.isArray(data.data)) {
                             let htmlContent = `<h2>Forecast Outcome: </h2>`;
                             htmlContent += '<table class="table">';
-                            htmlContent += '<thead> <tr> <th scope="col">ID Forecast Outcome</th> <th scope="col">Bulan</th> <th scope="col">Tahun</th> <th scope="col">Total</th> <th scope="col">Status</th> </tr> </thead';
+                            htmlContent += '<thead> <tr> <th scope="col">ID Forecast Outcome</th> <th scope="col">Bulan</th> <th scope="col">Tahun</th> <th scope="col">Total</th> <th scope="col">Status</th> <th scope="col">Detail</th> </tr> </thead';
                             htmlContent += '<tbody>';
                             data.data.forEach(data => {
                                 htmlContent += `<tr><td>${data.idForecastPengeluaran}</td> <td>${data.Bulan}</td> <td>${data.Tahun}</td> <td>${data.Total_Forecast_Pengeluaran}</td> <td>${data.isApproved}</td> <td> <a href="kategori_outcome.html?id=${data.idForecastPengeluaran}"><button type="button" class="btn btn-primary detail-out-btn" data-approved="${data.isApproved}">Detail</button></a></td></tr>`;
